@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PriceCheck {
+  id          String   @id @default(cuid())
+  type        String   // product | hotel | flight
+  sourceUrl   String?
+  sourceName  String?  // e.g. "Amazon", "Flipkart"
+  title       String?
+  currentPrice Float
+  currency   String   @default("INR")
+  rawInput    String?  // pasted text or JSON from scraper
+  fairPriceLow   Float?
+  fairPriceHigh Float?
+  surgeScore    Float?  // 0-100
+  recommendation String? // buy_now | wait | neutral
+  confidenceScore Float?
+  insightSummary String?
+  fullAnalysis   String? // JSON or long text from AI
+  createdAt   DateTime @default(now())
+}
