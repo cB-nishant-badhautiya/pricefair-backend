@@ -17,6 +17,13 @@ export async function runPriceCheck(input) {
     const scraped = await scrapeUrl(url);
     if (scraped.error) {
       payload.rawInput = JSON.stringify({ url, error: scraped.error });
+      if (scraped.error === "CAPTCHA_BLOCK" && scraped.captchaMessage) {
+        return {
+          success: false,
+          error: scraped.captchaMessage,
+          code: "CAPTCHA_BLOCK",
+        };
+      }
       if (!scraped.currentPrice && pastedText) {
         const pasted = parsePastedText(pastedText);
         if (pasted) {

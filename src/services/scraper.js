@@ -66,11 +66,37 @@ async function fetchHtml(url) {
   }
 }
 
+function isCaptchaPage(html, $) {
+  if (!html || typeof html !== "string") return false;
+  const lower = html.toLowerCase();
+  const title = ($("title").text() || "").toLowerCase();
+  return (
+    title.includes("recaptcha") ||
+    title.includes("captcha") ||
+    lower.includes("are you a human") ||
+    lower.includes("confirming...") ||
+    (lower.includes("recaptcha") && lower.includes("flipkart")) ||
+    (lower.includes("recaptcha") && lower.includes("amazon"))
+  );
+}
+
 export async function scrapeUrl(url) {
   const source = detectSource(url);
   try {
     const data = await fetchHtml(url);
     const $ = cheerio.load(data);
+
+    if (isCaptchaPage(data, $)) {
+      const site = source === "Flipkart" ? "Flipkart" : source === "Amazon" ? "Amazon" : "This site";
+      return {
+        error: "CAPTCHA_BLOCK",
+        captchaMessage: `${site} is showing a security check. Try again later or paste the product name and price in the text box below.`,
+        type: "product",
+        source,
+        title: null,
+        currentPrice: null,
+      };
+    }
 
     if (source === "Amazon") {
       const title =
